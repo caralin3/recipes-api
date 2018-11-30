@@ -1,6 +1,10 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8080;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+});
 
 const AllRecipesScraper = require('./src/allRecipesScraper');
 const FoodAndWineScraper = require('./src/foodAndWineScraper');
@@ -53,8 +57,4 @@ app.get('/*', (req, res, next) => {
       errorMessage: 'No url provided',
     })
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
 });
