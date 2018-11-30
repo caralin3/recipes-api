@@ -2,15 +2,21 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-});
-
 const AllRecipesScraper = require('./src/allRecipesScraper');
 const FoodAndWineScraper = require('./src/foodAndWineScraper');
 // const FoodNetworkScraper = require('./src/foodNetworkScraper');
 const GeniusKitchenScraper = require('./src/geniusKitchenScraper');
 const KitchnScraper = require('./src/kitchnScraper');
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+});
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 
 app.get('/*', (req, res, next) => {
   const url = req.query.url;
