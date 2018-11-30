@@ -1,4 +1,5 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -17,6 +18,8 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
+
+app.use(bodyParser);
 
 app.get('/*', (req, res, next) => {
   const url = req.query.url;
@@ -42,7 +45,7 @@ app.get('/*', (req, res, next) => {
             status: 'success',
           })
         } else {
-          res.json({
+          return res.json({
             status: 'failure',
             errorMessage: 'Error retrieving data',
           })
@@ -52,13 +55,13 @@ app.get('/*', (req, res, next) => {
         errorMessage: err.message,
       }));
     } else {
-      res.json({
+      return res.json({
         status: 'failure',
         errorMessage: 'Website is not supported',
       })
     }
   } else {
-    res.json({
+    return res.json({
       status: 'failure',
       errorMessage: 'No url provided',
     })
