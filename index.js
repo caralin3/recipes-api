@@ -1,12 +1,12 @@
 const express = require('express');
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT;
 
-const AllRecipesScraper = require('./allRecipesScraper');
-const FoodAndWineScraper = require('./foodAndWineScraper');
-// const FoodNetworkScraper = require('./foodNetworkScraper');
-const GeniusKitchenScraper = require('./geniusKitchenScraper');
-const KitchnScraper = require('./kitchnScraper');
+const AllRecipesScraper = require('./src/allRecipesScraper');
+const FoodAndWineScraper = require('./src/foodAndWineScraper');
+// const FoodNetworkScraper = require('./src/foodNetworkScraper');
+const GeniusKitchenScraper = require('./src/geniusKitchenScraper');
+const KitchnScraper = require('./src/kitchnScraper');
 
 app.get('/*', (req, res, next) => {
   const url = req.query.url;
