@@ -66,6 +66,8 @@ class FoodAndWineScraper {
         const servings = parseInt(serves.text().match(/\d+/g)[0]);
         data.servings = servings || 0;
 
+        data.src = 'FoodAndWine';
+
         // Get title
         data.title = $('.recipe-header').find('h1').text();
 

@@ -94,6 +94,8 @@ class AllRecipesScraper {
         const servings = parseInt($('#metaRecipeServings').attr('content'));
         data.servings = servings || 0;
 
+        data.src = 'AllRecipes';
+
         // Get title
         data.title = $('#recipe-main-content').text();
 
