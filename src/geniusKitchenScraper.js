@@ -74,7 +74,7 @@ class GeniusKitchenScraper {
         counts[field] = parseInt($('.count').text());
         data.servings = counts['servings'] || 0;
 
-        data.src = 'GeniusKitchen';
+        data.src = 'Genius Kitchen';
 
         // Get title
         data.title = $('.recipe-header').find('h1').text();

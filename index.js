@@ -4,7 +4,7 @@ const PORT = process.env.PORT || 8080;
 
 const AllRecipesScraper = require('./src/allRecipesScraper');
 const FoodAndWineScraper = require('./src/foodAndWineScraper');
-// const FoodNetworkScraper = require('./src/foodNetworkScraper');
+const FoodNetworkScraper = require('./src/foodNetworkScraper');
 const GeniusKitchenScraper = require('./src/geniusKitchenScraper');
 const KitchnScraper = require('./src/kitchnScraper');
 
@@ -26,9 +26,8 @@ app.get('/*', (req, res, next) => {
       scraper = new AllRecipesScraper(url);
     } else if (url.includes('foodandwine')) {
       scraper = new FoodAndWineScraper(url);
-      // } else if (url.includes('foodnetwork')) {
-      //   scraper = new FoodNetworkScraper(url);
-      // }
+    } else if (url.includes('foodnetwork')) {
+      scraper = new FoodNetworkScraper(url);
     } else if (url.includes('geniuskitchen')) {
       scraper = new GeniusKitchenScraper(url);
     } else if (url.includes('thekitchn')) {

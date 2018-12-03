@@ -88,7 +88,7 @@ class KitchnScraper {
         const counts = this.getYield($('.PostRecipe__yield').text());
         data.servings = counts['servings'] || 0;
 
-        data.src = 'TheKitchn';
+        data.src = 'The Kitchn';
 
         // Get title
         data.title = $('.PostRecipe').find('h2').text();
