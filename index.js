@@ -7,13 +7,15 @@ const FoodAndWineScraper = require('./src/foodAndWineScraper');
 const FoodNetworkScraper = require('./src/foodNetworkScraper');
 const GeniusKitchenScraper = require('./src/geniusKitchenScraper');
 const KitchnScraper = require('./src/kitchnScraper');
+const SpruceScraper = require('./src/spruceEatsScraper');
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 });
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*"); // TODO: Change to deployed recipe site
+  res.header("Access-Control-Allow-Origin", "https://recipemine-prod.firebaseapp.com/recipes");
+  // res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
@@ -32,7 +34,9 @@ app.get('/*', (req, res, next) => {
       scraper = new GeniusKitchenScraper(url);
     } else if (url.includes('thekitchn')) {
       scraper = new KitchnScraper(url);
-    } 
+    } else if (url.includes('thespruceeats')) {
+      scraper = new SpruceScraper(url);
+    }
     if (scraper) {
       scraper.scrape().then(data => {
         if (data) {
