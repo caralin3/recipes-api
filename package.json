@@ -2,20 +2,40 @@
   "name": "recipes-api",
   "version": "1.0.0",
   "description": "Rest API for recipe information",
-  "main": "index.js",
+  "main": "build/index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: No test specified\" && exit 1"
+    "start": "cross-env NODE_ENV=development \"yarn run build && yarn run watch\"",
+    "build": "cross-env NODE_ENV=production \"yarn run build-ts && yarn run tslint\"",
+    "build-ts": "tsc",
+    "watch-node": "nodemon build/index.js",
+    "watch-ts": "tsc -w",
+    "watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,green.bold\"  \"yarn run watch-ts\" \"yarn run watch-node\"",
+    "tslint": "tslint --project ./"
   },
   "license": "ISC",
-  "engines": {
-    "node": "v8.11.2",
-    "npm": "5.6.0"
-  },
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
+    "cors": "^2.8.5",
+    "dotenv": "^8.0.0",
     "express": "^4.16.4",
+    "io-ts": "^1.8.6",
     "request": "^2.88.0",
     "request-promise": "^4.2.2"
+  },
+  "devDependencies": {
+    "@types/body-parser": "^1.17.0",
+    "@types/cheerio": "^0.22.11",
+    "@types/cors": "^2.8.5",
+    "@types/dotenv": "^6.1.1",
+    "@types/express": "^4.16.1",
+    "@types/node": "^12.0.2",
+    "@types/request-promise": "^4.1.43",
+    "concurrently": "^4.1.0",
+    "cross-env": "^5.2.0",
+    "nodemon": "^1.19.0",
+    "tslint": "^5.16.0",
+    "tslint-config-airbnb": "^5.11.1",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.4.5"
   }
 }

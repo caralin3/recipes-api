@@ -1,34 +1,37 @@
-const rp = require('request-promise');
-const cheerio = require('cheerio');
+import cheerio from 'cheerio';
+import rp from 'request-promise';
+import { Recipe } from '../models';
 
-class AllRecipesScraper {
-  constructor (url) {
+export default class AllRecipesScraper {
+  private url: string;
+
+  constructor (url: string) {
     this.url = url;
   }
 
-  getTimes(text) {
+  getTimes(text: string) {
     const raw = text.trim().split('\n');
-    const obj = {};
+    const obj: any = {};
     raw.forEach(time => {
       if (time.trim() !== '') {
         const times = time.trim().split(' ');
         if (times[0].includes('Prep')) {
-          if (times[times.length - 1] == 'm') {
-            obj['prepTime'] = parseInt(times[0].slice(4));
+          if (times[times.length - 1] === 'm') {
+            obj['prepTime'] = parseInt(times[0].slice(4), 10);
           }
         } else if (times[0].includes('Cook')) {
-          if (times[times.length - 1] == 'm') {
-            obj['cookTime'] = parseInt(times[0].slice(4));
+          if (times[times.length - 1] === 'm') {
+            obj['cookTime'] = parseInt(times[0].slice(4), 10);
           }
         } else if (times[1].includes('In')) {
           let total = 0;
-          if (times[times.length - 1] == 'm') {
-            let min = parseInt(times[times.length - 2].slice(2));
+          if (times[times.length - 1] === 'm') {
+            let min = parseInt(times[times.length - 2].slice(2), 10);
             if (isNaN(min)) {
-              min = parseInt(times[times.length - 2]);
+              min = parseInt(times[times.length - 2], 10);
             }
-            if (times[2] == 'h') {
-              const hour = parseInt(times[1].slice(2));
+            if (times[2] === 'h') {
+              const hour = parseInt(times[1].slice(2), 10);
               if (hour !== 0 || !isNaN(hour)) {
                 total = Math.ceil(60 * hour);
               }
@@ -45,17 +48,17 @@ class AllRecipesScraper {
   }
 
   scrape() {
-    let data = {};
-    const options = {
+    const data: Recipe = {} as Recipe;
+    const options: rp.OptionsWithUri = {
       uri: this.url,
-      transform: (body) => {
+      transform: (body: any) => {
         return cheerio.load(body);
       }
-    }
+    };
     return rp(options)
-      .then(($) => {
+      .then(($: any) => {
         // Get calories
-        data.calories = parseInt($('.calorie-count').text().split(' ')[0]);
+        data.calories = parseInt($('.calorie-count').text().split(' ')[0], 10);
 
         // Get cooking times
         const times = this.getTimes($('.prepTime').text());
@@ -64,8 +67,8 @@ class AllRecipesScraper {
         data.totalTime = times['totalTime'] || 0;
 
         // Get directions
-        let directions = [];
-        $('.step').each((i, elem) => {
+        const directions: string[] = [];
+        $('.step').each((i: any, elem: any) => {
           if ($(elem).text().trim()) {
             directions.push($(elem).text().trim());
           }
@@ -73,25 +76,25 @@ class AllRecipesScraper {
         data.directions = directions;
 
         // Get ingredients
-        let ingredients = [];
-        $('.recipe-ingred_txt').each((i, elem) => {
+        const ingredients: string[] = [];
+        $('.recipe-ingred_txt').each((i: any, elem: any) => {
           if ($(elem).text().trim() && $(elem).text().trim() !== 'Add all ingredients to list') {
-            ingredients.push($(elem).text().trim())
+            ingredients.push($(elem).text().trim());
           }
         });
         data.ingredients = ingredients;
         
         // Get notes
-        const notes = [];
-        $('.recipe-footnotes').find('li').each((i, elem) => {
+        const notes: string[] = [];
+        $('.recipe-footnotes').find('li').each((i: any, elem: any) => {
           if (i !== 0) {
-            notes.push($(elem).text().trim())
+            notes.push($(elem).text().trim());
           }
         });
         data.notes = notes;
 
         // Get Yield
-        const servings = parseInt($('#metaRecipeServings').attr('content'));
+        const servings = parseInt($('#metaRecipeServings').attr('content'), 10);
         data.servings = servings || 0;
 
         data.src = 'AllRecipes';
@@ -104,10 +107,8 @@ class AllRecipesScraper {
 
         return data;
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.log(err);
-      })
+      });
   }
 }
-
-module.exports = AllRecipesScraper;
