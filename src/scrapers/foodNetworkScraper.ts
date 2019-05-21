@@ -1,15 +1,14 @@
 import cheerio from 'cheerio';
 import rp from 'request-promise';
 import { Recipe } from '../models';
+import Scraper from './scraper';
 
-export default class FoodNetworkScraper {
-  private url: string;
-
+export default class FoodNetworkScraper extends Scraper {
   constructor (url: string) {
-    this.url = url;
+    super(url);
   }
 
-  getTime(text: string) {
+  private getTime(text: string) {
     const raw = text.trim().split(' ');
     const unit1 = raw[1];
     let total = 0;
@@ -29,7 +28,13 @@ export default class FoodNetworkScraper {
   }
 
   scrape() {
-    const data: Recipe = {} as Recipe;
+    const data: Recipe = {
+      calories: 0,
+      servings: 0,
+      src: 'Food Network',
+      url: this.url,
+
+    } as Recipe;
     const options: rp.OptionsWithUri = {
       uri: this.url,
       transform: (body: any) => {
@@ -38,35 +43,32 @@ export default class FoodNetworkScraper {
     };
     return rp(options)
       .then(($) => {
-        // Get calories
-        data.calories = 0;
-
         // Get cooking times
         const prep = $('.o-RecipeInfo__m-Time').find('li')
-          .filter((i: any, elem: any) => $(elem).text().includes('Prep'));
+          .filter((i: number, elem: HTMLElement) => $(elem).text().includes('Prep'));
         const cook = $('.o-RecipeInfo__m-Time').find('li')
-          .filter((i: any, elem: any) => $(elem).text().includes('Cook'));
+          .filter((i: number, elem: HTMLElement) => $(elem).text().includes('Cook'));
         data.cookTime = this.getTime(cook.text().trim().split('\n')[1].trim());
         data.prepTime = this.getTime(prep.text().trim().split('\n')[1].trim());
         data.totalTime = this.getTime($('.m-RecipeInfo__a-Description--Total').text());
 
         // Get directions
         const directions: string[] = [];
-        $('.o-Method__m-Step').each((i: any, elem: any) => {
+        $('.o-Method__m-Step').each((i: number, elem: HTMLElement) => {
           directions[i] = $(elem).text().trim();
         });
         data.directions = directions;
 
         // Get ingredients
         const ingredients: string[] = [];
-        $('.o-Ingredients__a-Ingredient').each((i: any, elem: any) => {
+        $('.o-Ingredients__a-Ingredient').each((i: number, elem: HTMLElement) => {
           ingredients[i] =  $(elem).text().trim();
         });
         data.ingredients = ingredients;
         
         // Get notes
         const notes: string[] = [];
-        $('.o-ChefNotes__a-Description').each((i: any, elem: any) => {
+        $('.o-ChefNotes__a-Description').each((i: number, elem: HTMLElement) => {
           notes[i] =  $(elem).text().trim();
         });
         data.notes = notes;
@@ -74,15 +76,10 @@ export default class FoodNetworkScraper {
         // Get Yield
         const servings = $('.o-RecipeInfo__m-Yield').find('.o-RecipeInfo__a-Description').text();
         const yields = parseInt(servings.match(/\d+/g)[0], 10);
-        data.servings = 0;
-
-        data.src = 'Food Network';
+        data.yield = yields || 0;
 
         // Get title
         data.title = $('.o-AssetTitle__a-HeadlineText').text();
-
-        data.url = this.url;
-        data.yield = yields || 0;
 
         return data;
       })

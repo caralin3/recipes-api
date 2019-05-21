@@ -1,27 +1,32 @@
 import cheerio from 'cheerio';
 import rp from 'request-promise';
 import { Recipe } from '../models';
+import Scraper from './scraper';
 
-export default class AllRecipesScraper {
-  private url: string;
+interface RecipeTimes {
+  cookTime: number;
+  prepTime: number;
+  totalTime: number;
+}
 
+export default class AllRecipesScraper extends Scraper {
   constructor (url: string) {
-    this.url = url;
+    super(url);
   }
 
-  getTimes(text: string) {
+  private getTimes(text: string) {
     const raw = text.trim().split('\n');
-    const obj: any = {};
+    const obj: RecipeTimes = {} as RecipeTimes;
     raw.forEach(time => {
       if (time.trim() !== '') {
         const times = time.trim().split(' ');
         if (times[0].includes('Prep')) {
           if (times[times.length - 1] === 'm') {
-            obj['prepTime'] = parseInt(times[0].slice(4), 10);
+            obj.prepTime = parseInt(times[0].slice(4), 10);
           }
         } else if (times[0].includes('Cook')) {
           if (times[times.length - 1] === 'm') {
-            obj['cookTime'] = parseInt(times[0].slice(4), 10);
+            obj.cookTime = parseInt(times[0].slice(4), 10);
           }
         } else if (times[1].includes('In')) {
           let total = 0;
@@ -40,7 +45,7 @@ export default class AllRecipesScraper {
               total = min;
             }
           }
-          obj['totalTime'] = total;
+          obj.totalTime = total;
         }
       }
     });
@@ -48,7 +53,11 @@ export default class AllRecipesScraper {
   }
 
   scrape() {
-    const data: Recipe = {} as Recipe;
+    const data: Recipe = {
+      src: 'AllRecipes',
+      url: this.url,
+      yield: 0,
+    } as Recipe;
     const options: rp.OptionsWithUri = {
       uri: this.url,
       transform: (body: any) => {
@@ -61,14 +70,14 @@ export default class AllRecipesScraper {
         data.calories = parseInt($('.calorie-count').text().split(' ')[0], 10);
 
         // Get cooking times
-        const times = this.getTimes($('.prepTime').text());
-        data.cookTime = times['cookTime'] || 0;
-        data.prepTime = times['prepTime'] || 0;
-        data.totalTime = times['totalTime'] || 0;
+        const times: RecipeTimes = this.getTimes($('.prepTime').text());
+        data.cookTime = times.cookTime || 0;
+        data.prepTime = times.prepTime || 0;
+        data.totalTime = times.totalTime || 0;
 
         // Get directions
         const directions: string[] = [];
-        $('.step').each((i: any, elem: any) => {
+        $('.step').each((i: number, elem: HTMLElement) => {
           if ($(elem).text().trim()) {
             directions.push($(elem).text().trim());
           }
@@ -77,7 +86,7 @@ export default class AllRecipesScraper {
 
         // Get ingredients
         const ingredients: string[] = [];
-        $('.recipe-ingred_txt').each((i: any, elem: any) => {
+        $('.recipe-ingred_txt').each((i: number, elem: HTMLElement) => {
           if ($(elem).text().trim() && $(elem).text().trim() !== 'Add all ingredients to list') {
             ingredients.push($(elem).text().trim());
           }
@@ -86,28 +95,23 @@ export default class AllRecipesScraper {
         
         // Get notes
         const notes: string[] = [];
-        $('.recipe-footnotes').find('li').each((i: any, elem: any) => {
+        $('.recipe-footnotes').find('li').each((i: number, elem: HTMLElement) => {
           if (i !== 0) {
             notes.push($(elem).text().trim());
           }
         });
         data.notes = notes;
 
-        // Get Yield
+        // Get Servings
         const servings = parseInt($('#metaRecipeServings').attr('content'), 10);
         data.servings = servings || 0;
-
-        data.src = 'AllRecipes';
 
         // Get title
         data.title = $('#recipe-main-content').text();
 
-        data.url = this.url;
-        data.yield = 0;
-
         return data;
       })
-      .catch((err: any) => {
+      .catch((err: Error) => {
         console.log(err);
       });
   }

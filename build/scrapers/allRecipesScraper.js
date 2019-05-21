@@ -5,9 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const cheerio_1 = __importDefault(require("cheerio"));
 const request_promise_1 = __importDefault(require("request-promise"));
-class AllRecipesScraper {
+const scraper_1 = __importDefault(require("./scraper"));
+class AllRecipesScraper extends scraper_1.default {
     constructor(url) {
-        this.url = url;
+        super(url);
     }
     getTimes(text) {
         const raw = text.trim().split('\n');
@@ -17,12 +18,12 @@ class AllRecipesScraper {
                 const times = time.trim().split(' ');
                 if (times[0].includes('Prep')) {
                     if (times[times.length - 1] === 'm') {
-                        obj['prepTime'] = parseInt(times[0].slice(4), 10);
+                        obj.prepTime = parseInt(times[0].slice(4), 10);
                     }
                 }
                 else if (times[0].includes('Cook')) {
                     if (times[times.length - 1] === 'm') {
-                        obj['cookTime'] = parseInt(times[0].slice(4), 10);
+                        obj.cookTime = parseInt(times[0].slice(4), 10);
                     }
                 }
                 else if (times[1].includes('In')) {
@@ -43,14 +44,18 @@ class AllRecipesScraper {
                             total = min;
                         }
                     }
-                    obj['totalTime'] = total;
+                    obj.totalTime = total;
                 }
             }
         });
         return obj;
     }
     scrape() {
-        const data = {};
+        const data = {
+            src: 'AllRecipes',
+            url: this.url,
+            yield: 0,
+        };
         const options = {
             uri: this.url,
             transform: (body) => {
@@ -63,9 +68,9 @@ class AllRecipesScraper {
             data.calories = parseInt($('.calorie-count').text().split(' ')[0], 10);
             // Get cooking times
             const times = this.getTimes($('.prepTime').text());
-            data.cookTime = times['cookTime'] || 0;
-            data.prepTime = times['prepTime'] || 0;
-            data.totalTime = times['totalTime'] || 0;
+            data.cookTime = times.cookTime || 0;
+            data.prepTime = times.prepTime || 0;
+            data.totalTime = times.totalTime || 0;
             // Get directions
             const directions = [];
             $('.step').each((i, elem) => {
@@ -90,14 +95,11 @@ class AllRecipesScraper {
                 }
             });
             data.notes = notes;
-            // Get Yield
+            // Get Servings
             const servings = parseInt($('#metaRecipeServings').attr('content'), 10);
             data.servings = servings || 0;
-            data.src = 'AllRecipes';
             // Get title
             data.title = $('#recipe-main-content').text();
-            data.url = this.url;
-            data.yield = 0;
             return data;
         })
             .catch((err) => {

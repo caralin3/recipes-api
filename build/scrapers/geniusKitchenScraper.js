@@ -5,9 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const cheerio_1 = __importDefault(require("cheerio"));
 const request_promise_1 = __importDefault(require("request-promise"));
-class GeniusKitchenScraper {
+const scraper_1 = __importDefault(require("./scraper"));
+class GeniusKitchenScraper extends scraper_1.default {
     constructor(url) {
-        this.url = url;
+        super(url);
     }
     getTotalTime(text) {
         const raw = text.trim().split('\n');
@@ -36,7 +37,13 @@ class GeniusKitchenScraper {
         return 0;
     }
     scrape() {
-        const data = {};
+        const data = {
+            cookTime: 0,
+            notes: [],
+            prepTime: 0,
+            src: 'Genius Kitchen',
+            url: this.url,
+        };
         const options = {
             uri: this.url,
             transform: (body) => {
@@ -48,8 +55,6 @@ class GeniusKitchenScraper {
             // Get calories
             data.calories = parseInt($('.calories').text(), 10) || 0;
             // Get cooking times
-            data.cookTime = 0;
-            data.prepTime = 0;
             data.totalTime = this.getTotalTime($('.time').text()) || 0;
             // Get directions
             const directions = [];
@@ -68,8 +73,6 @@ class GeniusKitchenScraper {
                 }
             });
             data.ingredients = ingredients;
-            // Get notes
-            data.notes = [];
             // Get Yield
             const counts = {};
             const field = $('.count').parent().parent().attr('class');
@@ -77,11 +80,9 @@ class GeniusKitchenScraper {
                 counts[field.toLowerCase().trim()] = parseInt($('.count').text(), 10);
             }
             data.servings = counts['servings'] || 0;
-            data.src = 'Genius Kitchen';
+            data.yield = counts['yield'] || 0;
             // Get title
             data.title = $('.recipe-header').find('h1').text();
-            data.url = this.url;
-            data.yield = counts['yield'] || 0;
             return data;
         })
             .catch((err) => {

@@ -1,15 +1,14 @@
 import cheerio from 'cheerio';
 import rp from 'request-promise';
 import { Recipe } from '../models';
+import Scraper from './scraper';
 
-export default class FoodAndWineScraper {
-  private url: string;
-
+export default class FoodAndWineScraper extends Scraper {
   constructor (url: string) {
-    this.url = url;
+    super(url);
   }
 
-  getTotalTime(text: string) {
+  private getTotalTime(text: string) {
     const raw = text.trim().split(' ');
     const unit1 = raw[1];
     let total = 0;
@@ -29,7 +28,15 @@ export default class FoodAndWineScraper {
   }
 
   scrape() {
-    const data: Recipe = {} as Recipe;
+    const data: Recipe = {
+      calories: 0,
+      cookTime: 0,
+      notes: [],
+      prepTime: 0,
+      src: 'Food & Wine',
+      url: this.url,
+      yield: 0,
+    } as Recipe;
     const options: rp.OptionsWithUri = {
       uri: this.url,
       transform: (body: any) => {
@@ -38,44 +45,31 @@ export default class FoodAndWineScraper {
     };
     return rp(options)
       .then(($) => {
-        // Get calories
-        data.calories = 0;
-
         // Get cooking times
-        const time = $('.recipe-meta-item-header').filter((i: any, elem: any) => $(elem).text().includes('Total Time'));
-        data.cookTime = 0;
-        data.prepTime = 0;
+        const time = $('.recipe-meta-item-header').filter((i: number, elem: HTMLElement) => $(elem).text().includes('Total Time'));
         data.totalTime = this.getTotalTime(time.next().text().trim()) || 0;
 
         // Get directions
         const directions: string[] = [];
-        $('.step').find('p').each((i: any, elem: any) => {
+        $('.step').find('p').each((i: number, elem: HTMLElement) => {
           directions[i] = $(elem).text().trim();
         });
         data.directions = directions;
 
         // Get ingredients
         const ingredients: string[] = [];
-        $('.ingredients').find('li').each((i: any, elem: any) => {
+        $('.ingredients').find('li').each((i: number, elem: HTMLElement) => {
           ingredients[i] =  $(elem).text().trim();
         });
         data.ingredients = ingredients;
-        
-        // Get notes
-        data.notes = [];
 
-        // Get Yield
-        const serves = $('.recipe-meta-item-body').filter((i: any, elem: any) => $(elem).text().includes('Serves'));
+        // Get Servings
+        const serves = $('.recipe-meta-item-body').filter((i: number, elem: HTMLElement) => $(elem).text().includes('Serves'));
         const servings = parseInt(serves.text().match(/\d+/g)[0], 10);
         data.servings = servings || 0;
 
-        data.src = 'Food & Wine';
-
         // Get title
         data.title = $('.recipe-header').find('h1').text();
-
-        data.url = this.url;
-        data.yield = 0;
 
         return data;
       })

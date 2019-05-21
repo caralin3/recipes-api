@@ -1,16 +1,15 @@
 import cheerio from 'cheerio';
 import rp from 'request-promise';
 import { Recipe } from '../models';
+import Scraper from './scraper';
 
 // Not Working
-export default class KitchnScraper {
-  private url: string;
-
+export default class KitchnScraper extends Scraper {
   constructor (url: string) {
-    this.url = url;
+    super(url);
   }
 
-  getTimes(text: string) {
+  private getTimes(text: string) {
     const obj: any = {};
     if (text) {
       const times = text.split(';');
@@ -25,7 +24,7 @@ export default class KitchnScraper {
     return obj;
   }
 
-  getYield(raw: string) {
+  private getYield(raw: string) {
     const text = raw.split(' ');
     const obj: any = {};
     text.forEach((str, i) => {
@@ -48,7 +47,10 @@ export default class KitchnScraper {
   }
 
   scrape() {
-    const data: Recipe = {} as Recipe;
+    const data: Recipe = {
+      src: 'The Kitchn',
+      url: this.url,
+    } as Recipe;
     const options: rp.OptionsWithUri = {
       uri: this.url,
       transform: (body: any) => {
@@ -68,21 +70,21 @@ export default class KitchnScraper {
 
         // Get directions
         const directions: string[] = [];
-        $('.PostRecipeInstructionGroup__step').each((i: any, elem: any) => {
+        $('.PostRecipeInstructionGroup__step').each((i: number, elem: HTMLElement) => {
           directions[i] = $(elem).text().trim();
         });
         data.directions = directions;
 
         // Get ingredients
         const ingredients: string[] = [];
-        $('.PostRecipeIngredientGroup__ingredient').each((i: any, elem: any) => {
+        $('.PostRecipeIngredientGroup__ingredient').each((i: number, elem: HTMLElement) => {
           ingredients[i] = $(elem).text().trim();
         });
         data.ingredients = ingredients;
         
         // Get notes
         const notes: string[] = [];
-        $('.typeset--longform').last().find('p').each((i: any, elem: any) => {
+        $('.typeset--longform').last().find('p').each((i: number, elem: HTMLElement) => {
           if ($(elem).parent().parent().attr('class') !== 'PostRecipeInstructionGroup__step') {
             notes.push($(elem).text().trim());
           }
@@ -92,14 +94,10 @@ export default class KitchnScraper {
         // Get Yield
         const counts = this.getYield($('.PostRecipe__yield').text());
         data.servings = counts['servings'] || 0;
-
-        data.src = 'The Kitchn';
+        data.yield = counts['yield'] || 0;
 
         // Get title
         data.title = $('.PostRecipe').find('h2').text();
-
-        data.url = this.url;
-        data.yield = counts['yield'] || 0;
 
         return data;
       })

@@ -5,10 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const cheerio_1 = __importDefault(require("cheerio"));
 const request_promise_1 = __importDefault(require("request-promise"));
+const scraper_1 = __importDefault(require("./scraper"));
 // Not Working
-class KitchnScraper {
+class KitchnScraper extends scraper_1.default {
     constructor(url) {
-        this.url = url;
+        super(url);
     }
     getTimes(text) {
         const obj = {};
@@ -48,7 +49,10 @@ class KitchnScraper {
         return obj;
     }
     scrape() {
-        const data = {};
+        const data = {
+            src: 'The Kitchn',
+            url: this.url,
+        };
         const options = {
             uri: this.url,
             transform: (body) => {
@@ -87,11 +91,9 @@ class KitchnScraper {
             // Get Yield
             const counts = this.getYield($('.PostRecipe__yield').text());
             data.servings = counts['servings'] || 0;
-            data.src = 'The Kitchn';
+            data.yield = counts['yield'] || 0;
             // Get title
             data.title = $('.PostRecipe').find('h2').text();
-            data.url = this.url;
-            data.yield = counts['yield'] || 0;
             return data;
         })
             .catch((err) => {

@@ -38,10 +38,12 @@ app.get('/api/v1/import', (req, res) => {
                     status: 'error',
                     message: 'Error retrieving data',
                 });
-            }).catch((err) => res.json({
-                status: 'error',
-                message: err.message,
-            }));
+            }).catch((err) => {
+                res.json({
+                    status: 'error',
+                    message: err.message,
+                });
+            });
         }
         else {
             return res.json({

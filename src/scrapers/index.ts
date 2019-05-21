@@ -3,9 +3,10 @@ import FoodAndWineScraper from './foodAndWineScraper';
 import FoodNetworkScraper from './foodNetworkScraper';
 import GeniusKitchenScraper from './geniusKitchenScraper';
 import KitchnScraper from './kitchnScraper';
+import Scraper from './scraper';
 import SpruceEatsScraper from './spruceEatsScraper';
 
-export const getScraper = (url: string) => {
+export const getScraper = (url: string): Scraper => {
   if (url.includes('allrecipes')) {
     return new AllRecipesScraper(url);
   }

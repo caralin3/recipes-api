@@ -5,9 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const cheerio_1 = __importDefault(require("cheerio"));
 const request_promise_1 = __importDefault(require("request-promise"));
-class FoodNetworkScraper {
+const scraper_1 = __importDefault(require("./scraper"));
+class FoodNetworkScraper extends scraper_1.default {
     constructor(url) {
-        this.url = url;
+        super(url);
     }
     getTime(text) {
         const raw = text.trim().split(' ');
@@ -29,7 +30,12 @@ class FoodNetworkScraper {
         return total;
     }
     scrape() {
-        const data = {};
+        const data = {
+            calories: 0,
+            servings: 0,
+            src: 'Food Network',
+            url: this.url,
+        };
         const options = {
             uri: this.url,
             transform: (body) => {
@@ -38,8 +44,6 @@ class FoodNetworkScraper {
         };
         return request_promise_1.default(options)
             .then(($) => {
-            // Get calories
-            data.calories = 0;
             // Get cooking times
             const prep = $('.o-RecipeInfo__m-Time').find('li')
                 .filter((i, elem) => $(elem).text().includes('Prep'));
@@ -69,12 +73,9 @@ class FoodNetworkScraper {
             // Get Yield
             const servings = $('.o-RecipeInfo__m-Yield').find('.o-RecipeInfo__a-Description').text();
             const yields = parseInt(servings.match(/\d+/g)[0], 10);
-            data.servings = 0;
-            data.src = 'Food Network';
+            data.yield = yields || 0;
             // Get title
             data.title = $('.o-AssetTitle__a-HeadlineText').text();
-            data.url = this.url;
-            data.yield = yields || 0;
             return data;
         })
             .catch((err) => {

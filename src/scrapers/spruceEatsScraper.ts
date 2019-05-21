@@ -1,15 +1,14 @@
 import cheerio from 'cheerio';
 import rp from 'request-promise';
 import { Recipe } from '../models';
+import Scraper from './scraper';
 
-export default class SpruceEatsScraper {
-  private url: string;
-
+export default class SpruceEatsScraper extends Scraper {
   constructor (url: string) {
-    this.url = url;
+    super(url);
   }
 
-  getTime(text: string) {
+  private getTime(text: string) {
     const raw = text.trim().split(' ');
     const unit1 = raw[1];
     let total = 0;
@@ -46,9 +45,9 @@ export default class SpruceEatsScraper {
 
         // Get cooking times
         // const prep = $('.o-RecipeInfo__m-Time').find('li')
-          // .filter((i: any, elem: any) => $(elem).text().includes('Prep'));
+          // .filter((i: number, elem: HTMLElement) => $(elem).text().includes('Prep'));
         // const cook = $('.o-RecipeInfo__m-Time').find('li')
-          // .filter((i: any, elem: any) => $(elem).text().includes('Cook'));
+          // .filter((i: number, elem: HTMLElement) => $(elem).text().includes('Cook'));
         // data.cookTime = this.getTime(cook.text().trim().split('\n')[1].trim());
         // data.prepTime = this.getTime(prep.text().trim().split('\n')[1].trim());
         // console.log($('#meta-text_1-0').text())
@@ -56,21 +55,21 @@ export default class SpruceEatsScraper {
 
         // Get directions
         const directions: string[] = [];
-        // $('.o-Method__m-Step').each((i: any, elem: any) => {
+        // $('.o-Method__m-Step').each((i: number, elem: HTMLElement) => {
         //   directions[i] = $(elem).text().trim();
         // });
         // data.directions = directions;
 
         // Get ingredients
         const ingredients: string[] = [];
-        $('.ingredient').each((i: any, elem: any) => {
+        $('.ingredient').each((i: number, elem: HTMLElement) => {
           ingredients[i] =  $(elem).text().trim();
         });
         // data.ingredients = ingredients;
         
         // Get notes
         const notes: string[] = [];
-        // $('.o-ChefNotes__a-Description').each((i: any, elem: any) => {
+        // $('.o-ChefNotes__a-Description').each((i: number, elem: HTMLElement) => {
         //   notes[i] =  $(elem).text().trim();
         // });
         // data.notes = notes;

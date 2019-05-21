@@ -26,22 +26,24 @@ app.get('/api/v1/import', (req, res) => {
   if (url) {
     const scraper = getScraper(url);
     if (scraper) {
-      scraper.scrape().then((data: Recipe) => {
-        if (data) {
+        scraper.scrape().then((data: Recipe) => {
+          if (data) {
+            return res.json({
+              data,
+              status: 'success',
+              message: 'Data retrieved'
+            } as EndpointResponse);
+          }
           return res.json({
-            data,
-            status: 'success',
-            message: 'Data retrieved'
-          } as EndpointResponse);
-        }
-        return res.json({
+            status: 'error',
+            message: 'Error retrieving data',
+          });
+      }).catch ((err) => {
+        res.json({
           status: 'error',
-          message: 'Error retrieving data',
-        });
-      }).catch((err: any) => res.json({
-        status: 'error',
-        message: err.message,
-      } as EndpointResponse));
+          message: err.message,
+        } as EndpointResponse);
+      });
     } else {
       return res.json({
         status: 'error',
