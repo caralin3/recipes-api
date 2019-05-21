@@ -34,26 +34,26 @@ app.get('/api/v1/import', (req, res) => {
                         message: 'Data retrieved'
                     });
                 }
-                return res.json({
+                return res.status(500).json({
                     status: 'error',
                     message: 'Error retrieving data',
                 });
             }).catch((err) => {
-                res.json({
+                res.status(500).json({
                     status: 'error',
                     message: err.message,
                 });
             });
         }
         else {
-            return res.json({
+            return res.status(404).json({
                 status: 'error',
                 message: 'Website is not supported',
             });
         }
     }
     else {
-        return res.json({
+        return res.status(400).json({
             status: 'error',
             message: 'No url provided',
         });

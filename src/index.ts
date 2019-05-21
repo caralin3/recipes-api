@@ -26,32 +26,32 @@ app.get('/api/v1/import', (req, res) => {
   if (url) {
     const scraper = getScraper(url);
     if (scraper) {
-        scraper.scrape().then((data: Recipe) => {
-          if (data) {
-            return res.json({
-              data,
-              status: 'success',
-              message: 'Data retrieved'
-            } as EndpointResponse);
-          }
+      scraper.scrape().then((data: Recipe) => {
+        if (data) {
           return res.json({
-            status: 'error',
-            message: 'Error retrieving data',
-          });
+            data,
+            status: 'success',
+            message: 'Data retrieved'
+          } as EndpointResponse);
+        }
+        return res.status(500).json({
+          status: 'error',
+          message: 'Error retrieving data',
+        });
       }).catch ((err) => {
-        res.json({
+        res.status(500).json({
           status: 'error',
           message: err.message,
         } as EndpointResponse);
       });
     } else {
-      return res.json({
+      return res.status(404).json({
         status: 'error',
         message: 'Website is not supported',
       } as EndpointResponse);
     }
   } else {
-    return res.json({
+    return res.status(400).json({
       status: 'error',
       message: 'No url provided',
     } as EndpointResponse);
